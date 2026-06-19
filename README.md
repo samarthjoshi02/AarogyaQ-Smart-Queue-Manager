@@ -87,5 +87,25 @@ AarogyaQ/
 
 ---
 
+## Cloud Deployment (Render)
+
+AarogyaQ is configured to deploy as a unified monolith on cloud container/Node.js host services like **Render** or **Railway**:
+
+1. Create a free account on **Render.com** and connect your GitHub account.
+2. Click **New +** > **Web Service**.
+3. Connect this repository (`AarogyaQ-Smart-Queue-Manager`).
+4. Set the following parameters:
+   - **Build Command:** `npm run build`
+   - **Start Command:** `npm run start`
+5. Click **Advanced** and add the following environment variable:
+   - **Key:** `NODE_ENV`
+   - **Value:** `production`
+6. Click **Create Web Service**. Render will automatically build the React frontend assets and start serving them from the unified Node backend service.
+
+*Note: Render's Free tier is ephemeral. To persist the SQLite database through service restarts, attach a persistent disk volume to your Web Service for $1/month.*
+
+---
+
 ## Licenses & Credits
 Developed as a production-quality clinic queue manager by Antigravity. Open-sourced under the MIT License.
+
