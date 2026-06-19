@@ -38,8 +38,10 @@ import NowServingCard from './components/NowServingCard';
 import TokenLookup from './components/TokenLookup';
 import LiveNotification from './components/LiveNotification';
 
-// Connect to backend port 5000 dynamically
-const SOCKET_URL = window.location.protocol + '//' + window.location.hostname + ':5000';
+// Connect to backend port 5000 dynamically, or use current host in production
+const SOCKET_URL = import.meta.env.PROD
+  ? window.location.origin
+  : window.location.protocol + '//' + window.location.hostname + ':5000';
 let socket;
 
 // -------------------------------------------------------------

@@ -32,44 +32,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Root path guide
-app.get('/', (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>AarogyaQ API Server</title>
-        <style>
-          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 40px; background: #f8fafc; color: #0f172a; line-height: 1.6; }
-          .container { max-width: 600px; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin: 0 auto; border: 1px solid #e2e8f0; }
-          h1 { color: #2563EB; margin-top: 0; display: flex; align-items: center; gap: 10px; font-size: 28px; }
-          a { color: #2563EB; text-decoration: none; font-weight: 600; }
-          a:hover { text-decoration: underline; }
-          .badge { background: #DBEAFE; color: #1E40AF; padding: 4px 8px; border-radius: 6px; font-size: 13px; font-family: monospace; font-weight: bold; }
-          ul { padding-left: 20px; margin: 16px 0; }
-          li { margin-bottom: 12px; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <h1>AarogyaQ Backend Server</h1>
-          <p>This is the backend API and real-time Socket.IO communications hub for AarogyaQ.</p>
-          <p>To access the clinic user interfaces, open the frontend portals:</p>
-          <ul>
-            <li><strong>Receptionist Dashboard:</strong> <a href="http://localhost:5173/receptionist">http://localhost:5173/receptionist</a></li>
-            <li><strong>Patient Waiting Room:</strong> <a href="http://localhost:5173/waiting-room">http://localhost:5173/waiting-room</a></li>
-          </ul>
-          <p>Developer REST APIs:</p>
-          <ul>
-            <li><span class="badge">GET /api/queue</span> — <a href="/api/queue">View Live Queue JSON</a></li>
-            <li><span class="badge">GET /api/download-excel</span> — <a href="/api/download-excel">Download Synced Excel Spreadsheet</a></li>
-          </ul>
-        </div>
-      </body>
-    </html>
-  `);
-});
-
+// Serve static frontend files in production, otherwise serve API guide in development
 // Serving the synced Excel file as static download link
 app.get('/api/download-excel', (req, res) => {
   const file = path.resolve(__dirname, '../AarogyaQ_Queue_Data.xlsx');
@@ -80,7 +43,7 @@ app.get('/api/download-excel', (req, res) => {
   }
 });
 
-// REST API for raw queue data (handy for initial loads or diagnostic logs)
+// REST API for raw queue data
 app.get('/api/queue', async (req, res) => {
   try {
     const queue = await getAllPatients();
@@ -101,6 +64,55 @@ app.get('/api/queue', async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+
+// Production environment: Serve React frontend static files
+if (process.env.NODE_ENV === 'production') {
+  const distPath = path.resolve(__dirname, '../frontend/dist');
+  app.use(express.static(distPath));
+
+  // Client-side fallback routing for React Router paths
+  app.get('*', (req, res) => {
+    res.sendFile(path.resolve(distPath, 'index.html'));
+  });
+} else {
+  // Local development fallback: Return API server details
+  app.get('/', (req, res) => {
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>AarogyaQ API Server</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 40px; background: #f8fafc; color: #0f172a; line-height: 1.6; }
+            .container { max-width: 600px; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin: 0 auto; border: 1px solid #e2e8f0; }
+            h1 { color: #2563EB; margin-top: 0; display: flex; align-items: center; gap: 10px; font-size: 28px; }
+            a { color: #2563EB; text-decoration: none; font-weight: 600; }
+            a:hover { text-decoration: underline; }
+            .badge { background: #DBEAFE; color: #1E40AF; padding: 4px 8px; border-radius: 6px; font-size: 13px; font-family: monospace; font-weight: bold; }
+            ul { padding-left: 20px; margin: 16px 0; }
+            li { margin-bottom: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>AarogyaQ Backend Server</h1>
+            <p>This is the backend API and real-time Socket.IO communications hub for AarogyaQ.</p>
+            <p>To access the clinic user interfaces, open the frontend portals:</p>
+            <ul>
+              <li><strong>Receptionist Dashboard:</strong> <a href="http://localhost:5173/receptionist">http://localhost:5173/receptionist</a></li>
+              <li><strong>Patient Waiting Room:</strong> <a href="http://localhost:5173/waiting-room">http://localhost:5173/waiting-room</a></li>
+            </ul>
+            <p>Developer REST APIs:</p>
+            <ul>
+              <li><span class="badge">GET /api/queue</span> — <a href="/api/queue">View Live Queue JSON</a></li>
+              <li><span class="badge">GET /api/download-excel</span> — <a href="/api/download-excel">Download Synced Excel Spreadsheet</a></li>
+            </ul>
+          </div>
+        </body>
+      </html>
+    `);
+  });
+}
 
 // Create HTTP server
 const httpServer = createServer(app);
